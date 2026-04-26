@@ -1,17 +1,13 @@
-// src/pages/Cases/CaseEditPage.tsx
+// src/pages/Cases/CaseCreatePage.tsx
 import { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Header from '../../components/common/Header/Header';
 import Breadcrumb from '../../components/common/Breadcrumb/Breadcrumb';
-import { testCases } from '../../data/cases';
-import { SaveIcon, DeleteIcon } from '../../components/common/Icons/Icons';
-import './caseEditPage.css';
+import { SaveIcon, GenerateIcon } from '../../components/common/Icons/Icons';
+import './caseCreatePage.css';
 
-const CaseEditPage = () => {
-  const { id } = useParams<{ id: string }>();
+const CaseCreatePage = () => {
   const navigate = useNavigate();
-  
-  const caseData = testCases.find(c => c.id === id);
   
   // Refs для contentEditable элементов
   const titleRef = useRef<HTMLDivElement>(null);
@@ -26,13 +22,13 @@ const CaseEditPage = () => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    customerOrg: 'Альфа-Банк, Департамент малого и среднего бизнеса',
-    customerName: 'Кузнецов Дмитрий Андреевич',
-    expectedResult: 'Прототип мобильного приложения (iOS/Android) с реализованной скоринговой моделью, возможностью ввода данных по клиенту и формирования заключения о кредитном риске. Результат должен включать техническую документацию и презентацию для руководства.',
-    criteria: '1. Корректность работы скоринговой модели (точность предсказания — не менее 80% на тестовых данных).\n2. Удобство интерфейса (время заполнения анкеты — не более 3 минут).\n3. Стабильность работы в офлайн-режиме.\n4. Полнота технической документации.\n5. Качество презентации и защиты решения.',
-    programHead: 'Смирнова Елена Викторовна',
-    educationProgram: '09.03.04/33.01 Программная инженерия',
-    semester: 'Весенний'
+    customerOrg: '',
+    customerName: '',
+    expectedResult: '',
+    criteria: '',
+    programHead: '',
+    educationProgram: '',
+    semester: ''
   });
 
   // Функция для ограничения высоты contenteditable элементов
@@ -40,12 +36,6 @@ const CaseEditPage = () => {
     if (!element) return;
     
     const checkHeight = () => {
-      // Временно убираем ограничение, чтобы получить реальную высоту
-      const originalMaxHeight = element.style.maxHeight;
-      
-      element.style.maxHeight = 'none';
-      element.style.overflowY = 'visible';
-      
       const scrollHeight = element.scrollHeight;
       
       if (scrollHeight > maxHeight) {
@@ -59,40 +49,15 @@ const CaseEditPage = () => {
       }
     };
     
-    // Проверяем при каждом вводе текста
     element.addEventListener('input', checkHeight);
     element.addEventListener('paste', () => setTimeout(checkHeight, 10));
     element.addEventListener('keydown', () => setTimeout(checkHeight, 10));
     
-    // Наблюдатель за изменениями DOM
     const observer = new MutationObserver(checkHeight);
     observer.observe(element, { childList: true, subtree: true, characterData: true });
     
-    // Первоначальная проверка
     setTimeout(checkHeight, 100);
   };
-
-  // При загрузке данных преобразуем семестр
-useEffect(() => {
-  if (caseData) {
-    // Преобразуем "Весна 2024" → "Весенний"
-    let semesterValue = 'Весенний';
-    if (caseData.semester) {
-      if (caseData.semester.includes('Осень')) {
-        semesterValue = 'Осенний';
-      } else if (caseData.semester.includes('Весна')) {
-        semesterValue = 'Весенний';
-      }
-    }
-    
-    setFormData(prev => ({
-      ...prev,
-      title: caseData.title,
-      description: caseData.description,
-      semester: semesterValue
-    }));
-  }
-}, [caseData]);
 
   // Настройка скролла для всех полей
   useEffect(() => {
@@ -108,6 +73,13 @@ useEffect(() => {
 
   const handleContentChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    // Убираем класс empty если есть текст
+    const element = document.querySelector(`[data-field="${field}"]`);
+    if (element && value.trim() !== '') {
+      element.classList.remove('empty');
+    } else if (element && value.trim() === '') {
+      element.classList.add('empty');
+    }
   };
 
   const handleSemesterChange = (semester: string) => {
@@ -115,44 +87,32 @@ useEffect(() => {
   };
 
   const handleSave = () => {
-    console.log('Сохраненные данные:', formData);
-    navigate(`/cases/${id}`);
+    console.log('Создан новый кейс:', formData);
+    navigate('/cases');
   };
 
-  const handleDelete = () => {
-    if (window.confirm('Вы уверены, что хотите удалить этот кейс?')) {
-      console.log('Удален кейс:', id);
-      navigate('/cases');
-    }
+  const handleGenerate = () => {
+    console.log('Генерация кейса с помощью AI');
+    // TODO: добавить логику генерации
   };
 
   const breadcrumbItems = [
     { label: 'Главная', path: '/' },
     { label: 'Все кейсы', path: '/cases' },
-    { label: 'Просмотр кейса', path: `/cases/${id}` },
-    { label: 'Редактирование' },
+    { label: 'Создание кейса' },
   ];
 
-  if (!caseData) {
-    return (
-      <div className="page-wrapper">
-        <Header />
-        <div className="not-found">Кейс не найден</div>
-      </div>
-    );
-  }
-
   return (
-    <div className="page-wrapper case-edit-page">
+    <div className="page-wrapper case-create-page">
       <Header />
       <Breadcrumb items={breadcrumbItems} />
 
-      <div className="edit-header">
-        <h1 className="page-title">Редактирование кейса</h1>
-        <div className="edit-actions">
-          <button className="delete-btn" onClick={handleDelete}>
-            <DeleteIcon />
-            <span>Удалить</span>
+      <div className="create-header">
+        <h1 className="page-title">Создание кейса</h1>
+        <div className="create-actions">
+          <button className="generate-btn" onClick={handleGenerate}>
+            <GenerateIcon />
+            <span>Сгенерировать</span>
           </button>
           <button className="save-btn" onClick={handleSave}>
             <SaveIcon />
@@ -161,18 +121,20 @@ useEffect(() => {
         </div>
       </div>
 
-      <div className="edit-form">
+      <div className="create-form">
         {/* Название кейса */}
         <div className="form-field">
           <label className="form-label">Название кейса</label>
           <div
             ref={titleRef}
-            className="editable-box"
+            className="editable-box empty"
             contentEditable
             suppressContentEditableWarning
             onInput={(e) => handleContentChange('title', e.currentTarget.innerText)}
+            data-placeholder="Введите название кейса"
+            data-field="title"
+            style={{ minWidth: '100%', width: '100%' }}
           >
-            {formData.title}
           </div>
         </div>
 
@@ -181,12 +143,14 @@ useEffect(() => {
           <label className="form-label">Описание кейса</label>
           <div
             ref={descriptionRef}
-            className="editable-box"
+            className="editable-box empty"
             contentEditable
             suppressContentEditableWarning
             onInput={(e) => handleContentChange('description', e.currentTarget.innerText)}
+            data-placeholder="Введите описание кейса"
+            data-field="description"
+            style={{ minWidth: '100%', width: '100%' }}
           >
-            {formData.description}
           </div>
         </div>
 
@@ -195,12 +159,14 @@ useEffect(() => {
           <label className="form-label">Организация заказчика</label>
           <div
             ref={customerOrgRef}
-            className="editable-box"
+            className="editable-box empty"
             contentEditable
             suppressContentEditableWarning
             onInput={(e) => handleContentChange('customerOrg', e.currentTarget.innerText)}
+            data-placeholder="Введите организацию заказчика"
+            data-field="customerOrg"
+            style={{ minWidth: '100%', width: '100%' }}
           >
-            {formData.customerOrg}
           </div>
         </div>
 
@@ -209,12 +175,14 @@ useEffect(() => {
           <label className="form-label">ФИО заказчика</label>
           <div
             ref={customerNameRef}
-            className="editable-box"
+            className="editable-box empty"
             contentEditable
             suppressContentEditableWarning
             onInput={(e) => handleContentChange('customerName', e.currentTarget.innerText)}
+            data-placeholder="Введите ФИО заказчика"
+            data-field="customerName"
+            style={{ minWidth: '100%', width: '100%' }}
           >
-            {formData.customerName}
           </div>
         </div>
 
@@ -223,12 +191,14 @@ useEffect(() => {
           <label className="form-label">Предполагаемый результат</label>
           <div
             ref={expectedResultRef}
-            className="editable-box"
+            className="editable-box empty"
             contentEditable
             suppressContentEditableWarning
             onInput={(e) => handleContentChange('expectedResult', e.currentTarget.innerText)}
+            data-placeholder="Введите предполагаемый результат"
+            data-field="expectedResult"
+            style={{ minWidth: '100%', width: '100%' }}
           >
-            {formData.expectedResult}
           </div>
         </div>
 
@@ -237,12 +207,14 @@ useEffect(() => {
           <label className="form-label">Критерии оценки</label>
           <div
             ref={criteriaRef}
-            className="editable-box criteria-box"
+            className="editable-box criteria-box empty"
             contentEditable
             suppressContentEditableWarning
             onInput={(e) => handleContentChange('criteria', e.currentTarget.innerText)}
+            data-placeholder="Введите критерии оценки"
+            data-field="criteria"
+            style={{ minWidth: '100%', width: '100%' }}
           >
-            {formData.criteria}
           </div>
         </div>
 
@@ -251,12 +223,14 @@ useEffect(() => {
           <label className="form-label">Главный руководитель образовательной программы</label>
           <div
             ref={programHeadRef}
-            className="editable-box"
+            className="editable-box empty"
             contentEditable
             suppressContentEditableWarning
             onInput={(e) => handleContentChange('programHead', e.currentTarget.innerText)}
+            data-placeholder="Введите ФИО руководителя"
+            data-field="programHead"
+            style={{ minWidth: '100%', width: '100%' }}
           >
-            {formData.programHead}
           </div>
         </div>
 
@@ -265,12 +239,14 @@ useEffect(() => {
           <label className="form-label">Образовательная программа</label>
           <div
             ref={educationProgramRef}
-            className="editable-box"
+            className="editable-box empty"
             contentEditable
             suppressContentEditableWarning
             onInput={(e) => handleContentChange('educationProgram', e.currentTarget.innerText)}
+            data-placeholder="Введите образовательную программу"
+            data-field="educationProgram"
+            style={{ minWidth: '100%', width: '100%' }}
           >
-            {formData.educationProgram}
           </div>
         </div>
 
@@ -297,4 +273,4 @@ useEffect(() => {
   );
 };
 
-export default CaseEditPage;
+export default CaseCreatePage;
