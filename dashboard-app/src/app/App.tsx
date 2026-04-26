@@ -3,6 +3,7 @@ import DashboardPage from '../pages/Dashboard/DashboardPage';
 import CasesPage from '../pages/Cases/CasesPage';
 import SentCasesPage from '../pages/Cases/SentCasesPage';
 import CaseViewPage from '../pages/Cases/CaseViewPage';
+import CaseEditPage from '../pages/Cases/CaseEditPage';
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
         <Route path="/cases" element={<CasesPage />} />
         <Route path="/sent-cases" element={<SentCasesPage />} />
         <Route path="/cases/:id" element={<CaseViewPage />} />
+        <Route path="/cases/:id/edit" element={<CaseEditPage />} />
       </Routes>
     </BrowserRouter>
   );
