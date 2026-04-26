@@ -1,0 +1,263 @@
+.accordion-item {
+  margin-bottom: 10px;
+}
+
+.accordion-card {
+  background: #fff;
+  border-radius: 40px;
+  overflow: hidden;
+}
+
+.accordion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 30px 43px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  font-family: 'Montserrat', sans-serif;
+  text-align: left;
+  gap: 20px;
+}
+
+.accordion-header-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex: 1;
+  min-width: 0;
+}
+
+.accordion-title {
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 27px;
+  color: #202024;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.accordion-header-center {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+  background: #C5B4E2;
+}
+
+.status-text {
+  font-size: 14px;
+  font-weight: 400;
+  color: #202024;
+}
+
+.accordion-open-btn {
+  padding: 10px 15px;
+  background: #F9E27D;
+  color: #202024;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  text-align: center;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  transition: background 0.2s ease, color 0.2s ease, outline 0.15s ease;
+  white-space: nowrap;
+}
+
+.accordion-open-btn:hover {
+  background: #F6CF22;
+  color: #202024;
+}
+
+.accordion-open-btn:active {
+  background: transparent;
+  color: #F6CF22;
+  outline: 1px solid #F6CF22;
+  outline-offset: -1px;
+}
+
+.accordion-toggle {
+  width: 40px;
+  height: 40px;
+  padding: 6px;
+  background: #fff;
+  border-radius: 18px;
+  border: 1px solid #A5A5B0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: transform 0.2s ease, border 0.2s ease;
+}
+
+.accordion-toggle svg {
+  width: 24px;
+  height: 24px;
+  transition: transform 0.2s ease;
+}
+
+.accordion-toggle svg path {
+  stroke: #202024;
+  transition: stroke 0.2s ease;
+}
+
+.accordion-item.open .accordion-toggle svg {
+  transform: rotate(180deg);
+}
+
+.accordion-body {
+  display: none;
+  padding: 10px 43px 30px;
+}
+
+.accordion-item.open .accordion-body {
+  display: block;
+}
+
+.accordion-description {
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 24px;
+  color: #202024;
+  margin-bottom: 20px;
+}
+
+.accordion-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 60px;
+}
+
+.comments-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: #202024;
+  transition: color 0.2s ease;
+}
+
+.comments-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.comments-btn svg path {
+  transition: fill 0.2s ease;
+}
+
+.comments-btn:hover {
+  color: #A5A5B0;
+}
+
+.comments-btn:hover svg path {
+  fill: #A5A5B0;
+}
+
+.comments-btn:active {
+  color: #F9E27D;
+}
+
+.comments-btn:active svg path {
+  fill: #F9E27D;
+}
+
+.reactions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.reaction-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: #202024;
+  transition: color 0.2s ease;
+}
+
+.reaction-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.reaction-btn svg path {
+  transition: fill 0.2s ease;
+}
+
+.reaction-btn.like:hover {
+  color: #A5A5B0;
+}
+
+.reaction-btn.like:hover svg path {
+  fill: #A5A5B0;
+}
+
+.reaction-btn.like.active {
+  color: #F63333;
+}
+
+.reaction-btn.like.active svg path {
+  fill: #F63333;
+}
+
+.reaction-btn.dislike:hover {
+  color: #A5A5B0;
+}
+
+.reaction-btn.dislike:hover svg path {
+  fill: #A5A5B0;
+}
+
+.reaction-btn.dislike.active {
+  color: #F63333;
+}
+
+.reaction-btn.dislike.active svg path {
+  fill: #F63333;
+}
+
+@media (max-width: 768px) {
+  .accordion-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 20px 20px;
+  }
+  .accordion-body {
+    padding: 10px 20px 20px;
+  }
+  .accordion-footer {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 14px;
+  }
+}
