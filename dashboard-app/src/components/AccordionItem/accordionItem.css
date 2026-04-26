@@ -61,7 +61,7 @@
 }
 
 .accordion-open-btn {
-  padding: 10px 15px;
+  padding: 10px 20px;
   background: #F9E27D;
   color: #202024;
   font-family: 'Montserrat', sans-serif;
@@ -86,9 +86,14 @@
 
 .accordion-open-btn:active {
   background: transparent;
-  color: #F6CF22;
-  outline: 1px solid #F6CF22;
+  color: #F9E27D;
+  outline: 1px solid #F9E27D;
   outline-offset: -1px;
+}
+
+.accordion-open-btn:active svg path {
+  stroke: #F9E27D;
+  fill: #F9E27D;
 }
 
 .accordion-toggle {

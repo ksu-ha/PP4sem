@@ -38,10 +38,15 @@ const AccordionItem = ({
 
   const showReactions = type === 'case' && status === 'На оценке';
   
-  // Для карточек - стандартная обрезка 55 символов
   const { displayText: displayTitle, fullText: fullTitle } = truncateCardTitle(title);
   
   const displayDescription = isOpen ? description : truncateCardDescription(description);
+
+  // Функция переключения аккордеона - будет вызываться только при клике на стрелку
+  const handleToggleAccordion = (e: React.MouseEvent) => {
+    e.stopPropagation(); // чтобы случайно не триггерить другие обработчики
+    setIsOpen(!isOpen);
+  };
 
   const handleLike = () => {
     if (liked) {
@@ -76,9 +81,10 @@ const AccordionItem = ({
   return (
     <div className={`accordion-item ${isOpen ? 'open' : ''}`}>
       <div className="accordion-card">
-        <button className="accordion-header" onClick={() => setIsOpen(!isOpen)}>
+        <div className="accordion-header">
           <div className="accordion-header-left">
-            <div className="accordion-toggle">
+            {/* ТОЛЬКО здесь клик по стрелке переключает аккордеон */}
+            <div className="accordion-toggle" onClick={handleToggleAccordion}>
               <AccordionArrowIcon />
             </div>
             <span className="accordion-title" title={fullTitle}>
@@ -91,11 +97,17 @@ const AccordionItem = ({
               <span className="status-text">{status}</span>
             </div>
           )}
-          <div className="accordion-open-btn" onClick={(e) => { e.stopPropagation(); onOpenFull?.(); }}>
+          <div 
+            className="accordion-open-btn" 
+            onClick={(e) => { 
+              e.stopPropagation(); 
+              onOpenFull?.(); 
+            }}
+          >
             Открыть полностью
             <OpenFullIcon />
           </div>
-        </button>
+        </div>
         {isOpen && (
           <div className="accordion-body">
             <p className="accordion-description">{displayDescription}</p>
