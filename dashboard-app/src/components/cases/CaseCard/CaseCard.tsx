@@ -1,9 +1,15 @@
 import { useState } from 'react';
-import { AccordionArrowIcon, OpenFullIcon, CommentIcon, ReactionIcon } from '../common/Icons/Icons';
-import { truncateCardTitle, truncateCardDescription } from '../../utils/truncate';
-import './accordionItem.css';
+import { 
+  ReactionIcon, 
+  ArrowDownIcon, 
+  OpenFullIcon, 
+  CommentIcon,
+  CheckboxIcon 
+} from '../../common/Icons/Icons';
+import { truncateCardTitle, truncateCardDescription } from '../../../utils/truncate';
+import './caseCard.css';
 
-interface AccordionItemProps {
+interface CaseCardProps {
   type: 'case' | 'team';
   title: string;
   description: string;
@@ -15,9 +21,12 @@ interface AccordionItemProps {
   onComment?: () => void;
   onLike?: () => void;
   onDislike?: () => void;
+  showCheckbox?: boolean;
+  isSelected?: boolean;
+  onSelect?: (selected: boolean) => void;
 }
 
-const AccordionItem = ({
+const CaseCard = ({
   type,
   title,
   description,
@@ -28,8 +37,11 @@ const AccordionItem = ({
   onOpenFull,
   onComment,
   onLike: onLikeProp,
-  onDislike: onDislikeProp
-}: AccordionItemProps) => {
+  onDislike: onDislikeProp,
+  showCheckbox = false,
+  isSelected = false,
+  onSelect
+}: CaseCardProps) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const [likes, setLikes] = useState(initialLikes);
   const [dislikes, setDislikes] = useState(initialDislikes);
@@ -38,9 +50,7 @@ const AccordionItem = ({
 
   const showReactions = type === 'case' && status === 'На оценке';
   
-  // Для карточек - стандартная обрезка 55 символов
   const { displayText: displayTitle, fullText: fullTitle } = truncateCardTitle(title);
-  
   const displayDescription = isOpen ? description : truncateCardDescription(description);
 
   const handleLike = () => {
@@ -73,13 +83,26 @@ const AccordionItem = ({
     onDislikeProp?.();
   };
 
+  const handleCheckboxClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onSelect?.(!isSelected);
+  };
+
   return (
     <div className={`accordion-item ${isOpen ? 'open' : ''}`}>
       <div className="accordion-card">
         <button className="accordion-header" onClick={() => setIsOpen(!isOpen)}>
           <div className="accordion-header-left">
+            {showCheckbox && (
+              <div 
+                className={`case-checkbox ${isSelected ? 'selected' : ''}`}
+                onClick={handleCheckboxClick}
+              >
+                <CheckboxIcon />
+              </div>
+            )}
             <div className="accordion-toggle">
-              <AccordionArrowIcon />
+              <ArrowDownIcon />
             </div>
             <span className="accordion-title" title={fullTitle}>
               {displayTitle}
@@ -99,7 +122,6 @@ const AccordionItem = ({
         {isOpen && (
           <div className="accordion-body">
             <p className="accordion-description">{displayDescription}</p>
-            
             {showReactions && (
               <div className="accordion-footer">
                 <button className="comments-btn" onClick={(e) => { e.stopPropagation(); onComment?.(); }}>
@@ -127,4 +149,4 @@ const AccordionItem = ({
   );
 };
 
-export default AccordionItem;
+export default CaseCard;
