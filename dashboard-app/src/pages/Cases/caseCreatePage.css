@@ -210,6 +210,133 @@
   min-height: 150px;
 }
 
+/* Фиксированная высота для всех полей через max-height */
+.editable-box {
+  width: 100%;
+  padding: 15px 20px;
+  background: #F4F4F4;
+  border-radius: 25px;
+  border: 2px solid transparent;
+  outline: none;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 21px;
+  color: #202024;
+  transition: border-color 0.2s ease;
+  cursor: text;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+/* Фиксированная высота */
+.editable-box {
+  min-height: 53px;
+  max-height: 53px;
+}
+
+/* Исключение для описания */
+.form-field[data-field="description"] .editable-box {
+  min-height: 116px;
+  max-height: 116px;
+}
+
+/* Исключение для предполагаемого результата */
+.form-field[data-field="expectedResult"] .editable-box {
+  min-height: 95px;
+  max-height: 95px;
+}
+
+/* Исключение для критериев */
+.form-field[data-field="criteria"] .editable-box {
+  min-height: 137px;
+  max-height: 137px;
+}
+
+/* Скролл */
+.editable-box::-webkit-scrollbar {
+  width: 6px;
+}
+
+.editable-box::-webkit-scrollbar-track {
+  background: #E0E0E0;
+  border-radius: 10px;
+}
+
+.editable-box::-webkit-scrollbar-thumb {
+  background: #A5A5B0;
+  border-radius: 10px;
+}
+
+.editable-box::-webkit-scrollbar-thumb:hover {
+  background: #202024;
+}
+
+/* Плейсхолдер */
+.editable-box.empty:before {
+  content: attr(data-placeholder);
+  color: #A5A5B0;
+}
+
+.editable-box:focus.empty:before {
+  content: none;
+}
+
+/* Ошибки */
+.error-message {
+  color: #F63333;
+  font-size: 14px;
+  font-family: 'Montserrat', sans-serif;
+  margin-top: 5px;
+  margin-left: 15px;
+}
+
+.semester-error {
+  margin-top: 5px;
+  margin-right: 0;
+}
+
+.semester-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+}
+
+.semester-toggle {
+  display: flex;
+  background: #F4F4F4;
+  border-radius: 25px;
+  gap: 0;
+  overflow: hidden;
+}
+
+.semester-option {
+  padding: 10px 15px;
+  font-size: 14px;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 400;
+  color: #202024;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  text-align: center;
+  border-radius: 25px;
+  border: none;
+  background: transparent;
+}
+
+.semester-option.active {
+  background: #F9E27D;
+  border-radius: 25px;
+}
+
+.semester-option:not(.active):hover {
+  background: #E0E0E0;
+  border-radius: 25px;
+}
+
 /* Responsive */
 @media (max-width: 1200px) {
   .create-form {

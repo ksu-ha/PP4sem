@@ -1,27 +1,18 @@
 // src/pages/Cases/CaseEditPage.tsx
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../../components/common/Header/Header';
 import Breadcrumb from '../../components/common/Breadcrumb/Breadcrumb';
+import EditableField from '../../components/common/EditableField/EditableField';
 import { testCases } from '../../data/cases';
 import { SaveIcon, DeleteIcon } from '../../components/common/Icons/Icons';
+import { validateForm } from '../../utils/validation';
 import './caseEditPage.css';
 
 const CaseEditPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  
   const caseData = testCases.find(c => c.id === id);
-  
-  // Refs для contentEditable элементов
-  const titleRef = useRef<HTMLDivElement>(null);
-  const descriptionRef = useRef<HTMLDivElement>(null);
-  const customerOrgRef = useRef<HTMLDivElement>(null);
-  const customerNameRef = useRef<HTMLDivElement>(null);
-  const expectedResultRef = useRef<HTMLDivElement>(null);
-  const criteriaRef = useRef<HTMLDivElement>(null);
-  const programHeadRef = useRef<HTMLDivElement>(null);
-  const educationProgramRef = useRef<HTMLDivElement>(null);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -35,86 +26,78 @@ const CaseEditPage = () => {
     semester: 'Весенний'
   });
 
-  // Функция для ограничения высоты contenteditable элементов
-  const setupScrollableEditable = (element: HTMLDivElement | null, maxHeight: number) => {
-    if (!element) return;
-    
-    const checkHeight = () => {
-      // Временно убираем ограничение, чтобы получить реальную высоту
-      const originalMaxHeight = element.style.maxHeight;
-      
-      element.style.maxHeight = 'none';
-      element.style.overflowY = 'visible';
-      
-      const scrollHeight = element.scrollHeight;
-      
-      if (scrollHeight > maxHeight) {
-        element.style.maxHeight = maxHeight + 'px';
-        element.style.overflowY = 'auto';
-        element.classList.add('with-scroll');
-      } else {
-        element.style.maxHeight = 'none';
-        element.style.overflowY = 'visible';
-        element.classList.remove('with-scroll');
-      }
-    };
-    
-    // Проверяем при каждом вводе текста
-    element.addEventListener('input', checkHeight);
-    element.addEventListener('paste', () => setTimeout(checkHeight, 10));
-    element.addEventListener('keydown', () => setTimeout(checkHeight, 10));
-    
-    // Наблюдатель за изменениями DOM
-    const observer = new MutationObserver(checkHeight);
-    observer.observe(element, { childList: true, subtree: true, characterData: true });
-    
-    // Первоначальная проверка
-    setTimeout(checkHeight, 100);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const limits = {
+    title: 100,
+    description: 2000,
+    customerOrg: 200,
+    customerName: 100,
+    expectedResult: 1000,
+    criteria: 2000,
+    programHead: 100,
+    educationProgram: 150
   };
 
-  // При загрузке данных преобразуем семестр
-useEffect(() => {
-  if (caseData) {
-    // Преобразуем "Весна 2024" → "Весенний"
-    let semesterValue = 'Весенний';
-    if (caseData.semester) {
-      if (caseData.semester.includes('Осень')) {
-        semesterValue = 'Осенний';
-      } else if (caseData.semester.includes('Весна')) {
-        semesterValue = 'Весенний';
-      }
-    }
-    
-    setFormData(prev => ({
-      ...prev,
-      title: caseData.title,
-      description: caseData.description,
-      semester: semesterValue
-    }));
-  }
-}, [caseData]);
+  const fieldHeights = {
+    title: 53,
+    description: 116,
+    customerOrg: 53,
+    customerName: 53,
+    expectedResult: 95,
+    criteria: 137,
+    programHead: 53,
+    educationProgram: 53
+  };
 
-  // Настройка скролла для всех полей
   useEffect(() => {
-    setupScrollableEditable(titleRef.current, 53.4);
-    setupScrollableEditable(descriptionRef.current, 116.4);
-    setupScrollableEditable(customerOrgRef.current, 53.4);
-    setupScrollableEditable(customerNameRef.current, 53.4);
-    setupScrollableEditable(expectedResultRef.current, 95.4);
-    setupScrollableEditable(criteriaRef.current, 137.4);
-    setupScrollableEditable(programHeadRef.current, 53.4);
-    setupScrollableEditable(educationProgramRef.current, 53.4);
-  }, []);
+    if (caseData) {
+      let semesterValue = 'Весенний';
+      if (caseData.semester) {
+        if (caseData.semester.includes('Осень')) {
+          semesterValue = 'Осенний';
+        } else if (caseData.semester.includes('Весна')) {
+          semesterValue = 'Весенний';
+        }
+      }
+      
+      setFormData(prev => ({
+        ...prev,
+        title: caseData.title,
+        description: caseData.description,
+        semester: semesterValue
+      }));
+    }
+  }, [caseData]);
 
-  const handleContentChange = (field: string, value: string) => {
+  const handleFieldChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
   };
 
-  const handleSemesterChange = (semester: string) => {
-    setFormData(prev => ({ ...prev, semester }));
+  const handleSemesterChange = (newSemester: string) => {
+    setFormData(prev => ({ ...prev, semester: newSemester }));
+    if (errors.semester) {
+      setErrors(prev => ({ ...prev, semester: '' }));
+    }
   };
 
   const handleSave = () => {
+    const { isValid, errors: validationErrors } = validateForm(formData);
+    
+    if (!isValid) {
+      setErrors(validationErrors);
+      const firstErrorField = Object.keys(validationErrors)[0];
+      const errorElement = document.querySelector(`[data-field="${firstErrorField}"]`);
+      if (errorElement) {
+        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
+    
+    setErrors({});
     console.log('Сохраненные данные:', formData);
     navigate(`/cases/${id}`);
   };
@@ -162,134 +145,113 @@ useEffect(() => {
       </div>
 
       <div className="edit-form">
-        {/* Название кейса */}
-        <div className="form-field">
+        <div className="form-field" data-field="title">
           <label className="form-label">Название кейса</label>
-          <div
-            ref={titleRef}
-            className="editable-box"
-            contentEditable
-            suppressContentEditableWarning
-            onInput={(e) => handleContentChange('title', e.currentTarget.innerText)}
-          >
-            {formData.title}
-          </div>
+          <EditableField
+            value={formData.title}
+            onChange={(v) => handleFieldChange('title', v)}
+            maxLength={limits.title}
+            maxHeight={fieldHeights.title}
+          />
+          {errors.title && <div className="error-message">{errors.title}</div>}
         </div>
 
-        {/* Описание кейса */}
-        <div className="form-field">
+        <div className="form-field" data-field="description">
           <label className="form-label">Описание кейса</label>
-          <div
-            ref={descriptionRef}
-            className="editable-box"
-            contentEditable
-            suppressContentEditableWarning
-            onInput={(e) => handleContentChange('description', e.currentTarget.innerText)}
-          >
-            {formData.description}
-          </div>
+          <EditableField
+            value={formData.description}
+            onChange={(v) => handleFieldChange('description', v)}
+            maxLength={limits.description}
+            maxHeight={fieldHeights.description}
+          />
+          {errors.description && <div className="error-message">{errors.description}</div>}
         </div>
 
-        {/* Организация заказчика */}
-        <div className="form-field">
+        <div className="form-field" data-field="customerOrg">
           <label className="form-label">Организация заказчика</label>
-          <div
-            ref={customerOrgRef}
-            className="editable-box"
-            contentEditable
-            suppressContentEditableWarning
-            onInput={(e) => handleContentChange('customerOrg', e.currentTarget.innerText)}
-          >
-            {formData.customerOrg}
-          </div>
+          <EditableField
+            value={formData.customerOrg}
+            onChange={(v) => handleFieldChange('customerOrg', v)}
+            maxLength={limits.customerOrg}
+            maxHeight={fieldHeights.customerOrg}
+          />
+          {errors.customerOrg && <div className="error-message">{errors.customerOrg}</div>}
         </div>
 
-        {/* ФИО заказчика */}
-        <div className="form-field">
+        <div className="form-field" data-field="customerName">
           <label className="form-label">ФИО заказчика</label>
-          <div
-            ref={customerNameRef}
-            className="editable-box"
-            contentEditable
-            suppressContentEditableWarning
-            onInput={(e) => handleContentChange('customerName', e.currentTarget.innerText)}
-          >
-            {formData.customerName}
-          </div>
+          <EditableField
+            value={formData.customerName}
+            onChange={(v) => handleFieldChange('customerName', v)}
+            maxLength={limits.customerName}
+            maxHeight={fieldHeights.customerName}
+          />
+          {errors.customerName && <div className="error-message">{errors.customerName}</div>}
         </div>
 
-        {/* Предполагаемый результат */}
-        <div className="form-field">
+        <div className="form-field" data-field="expectedResult">
           <label className="form-label">Предполагаемый результат</label>
-          <div
-            ref={expectedResultRef}
-            className="editable-box"
-            contentEditable
-            suppressContentEditableWarning
-            onInput={(e) => handleContentChange('expectedResult', e.currentTarget.innerText)}
-          >
-            {formData.expectedResult}
-          </div>
+          <EditableField
+            value={formData.expectedResult}
+            onChange={(v) => handleFieldChange('expectedResult', v)}
+            maxLength={limits.expectedResult}
+            maxHeight={fieldHeights.expectedResult}
+          />
+          {errors.expectedResult && <div className="error-message">{errors.expectedResult}</div>}
         </div>
 
-        {/* Критерии оценки */}
-        <div className="form-field">
+        <div className="form-field" data-field="criteria">
           <label className="form-label">Критерии оценки</label>
-          <div
-            ref={criteriaRef}
-            className="editable-box criteria-box"
-            contentEditable
-            suppressContentEditableWarning
-            onInput={(e) => handleContentChange('criteria', e.currentTarget.innerText)}
-          >
-            {formData.criteria}
-          </div>
+          <EditableField
+            value={formData.criteria}
+            onChange={(v) => handleFieldChange('criteria', v)}
+            maxLength={limits.criteria}
+            maxHeight={fieldHeights.criteria}
+          />
+          {errors.criteria && <div className="error-message">{errors.criteria}</div>}
         </div>
 
-        {/* Главный руководитель */}
-        <div className="form-field">
+        <div className="form-field" data-field="programHead">
           <label className="form-label">Главный руководитель образовательной программы</label>
-          <div
-            ref={programHeadRef}
-            className="editable-box"
-            contentEditable
-            suppressContentEditableWarning
-            onInput={(e) => handleContentChange('programHead', e.currentTarget.innerText)}
-          >
-            {formData.programHead}
-          </div>
+          <EditableField
+            value={formData.programHead}
+            onChange={(v) => handleFieldChange('programHead', v)}
+            maxLength={limits.programHead}
+            maxHeight={fieldHeights.programHead}
+          />
+          {errors.programHead && <div className="error-message">{errors.programHead}</div>}
         </div>
 
-        {/* Образовательная программа */}
-        <div className="form-field">
+        <div className="form-field" data-field="educationProgram">
           <label className="form-label">Образовательная программа</label>
-          <div
-            ref={educationProgramRef}
-            className="editable-box"
-            contentEditable
-            suppressContentEditableWarning
-            onInput={(e) => handleContentChange('educationProgram', e.currentTarget.innerText)}
-          >
-            {formData.educationProgram}
-          </div>
+          <EditableField
+            value={formData.educationProgram}
+            onChange={(v) => handleFieldChange('educationProgram', v)}
+            maxLength={limits.educationProgram}
+            maxHeight={fieldHeights.educationProgram}
+          />
+          {errors.educationProgram && <div className="error-message">{errors.educationProgram}</div>}
         </div>
 
         {/* Семестр */}
-        <div className="form-field form-field-row">
+        <div className="form-field form-field-row" data-field="semester">
           <label className="form-label">Семестр</label>
-          <div className="semester-toggle">
-            <button
-              className={`semester-option ${formData.semester === 'Осенний' ? 'active' : ''}`}
-              onClick={() => handleSemesterChange('Осенний')}
-            >
-              Осенний
-            </button>
-            <button
-              className={`semester-option ${formData.semester === 'Весенний' ? 'active' : ''}`}
-              onClick={() => handleSemesterChange('Весенний')}
-            >
-              Весенний
-            </button>
+          <div className="semester-wrapper">
+            <div className="semester-toggle">
+              <button
+                className={`semester-option ${formData.semester === 'Осенний' ? 'active' : ''}`}
+                onClick={() => handleSemesterChange('Осенний')}
+              >
+                Осенний
+              </button>
+              <button
+                className={`semester-option ${formData.semester === 'Весенний' ? 'active' : ''}`}
+                onClick={() => handleSemesterChange('Весенний')}
+              >
+                Весенний
+              </button>
+            </div>
+            {errors.semester && <div className="error-message semester-error">{errors.semester}</div>}
           </div>
         </div>
       </div>

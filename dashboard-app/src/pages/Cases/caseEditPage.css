@@ -248,6 +248,14 @@
   margin-top: 40px;
 }
 
+.error-message {
+  color: #F63333;
+  font-size: 14px;
+  font-family: 'Montserrat', sans-serif;
+  margin-top: 5px;
+  margin-left: 15px;
+}
+
 /* Responsive */
 @media (max-width: 1200px) {
   .edit-form {

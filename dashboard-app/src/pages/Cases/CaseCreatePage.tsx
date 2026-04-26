@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../../components/common/Header/Header';
 import Breadcrumb from '../../components/common/Breadcrumb/Breadcrumb';
 import { SaveIcon, GenerateIcon } from '../../components/common/Icons/Icons';
+import { validateForm } from '../../utils/validation';
 import './caseCreatePage.css';
 
 const CaseCreatePage = () => {
@@ -31,7 +32,21 @@ const CaseCreatePage = () => {
     semester: ''
   });
 
-  // Функция для ограничения высоты contenteditable элементов
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Лимиты для полей
+  const fieldLimits: Record<string, number> = {
+    title: 100,
+    description: 2000,
+    customerOrg: 200,
+    customerName: 100,
+    expectedResult: 1000,
+    criteria: 2000,
+    programHead: 100,
+    educationProgram: 150
+  };
+
+  // Функция для ограничения высоты
   const setupScrollableEditable = (element: HTMLDivElement | null, maxHeight: number) => {
     if (!element) return;
     
@@ -59,41 +74,93 @@ const CaseCreatePage = () => {
     setTimeout(checkHeight, 100);
   };
 
-  // Настройка скролла для всех полей
+  // Настройка скролла
   useEffect(() => {
-    setupScrollableEditable(titleRef.current, 53.4);
-    setupScrollableEditable(descriptionRef.current, 116.4);
-    setupScrollableEditable(customerOrgRef.current, 53.4);
-    setupScrollableEditable(customerNameRef.current, 53.4);
-    setupScrollableEditable(expectedResultRef.current, 95.4);
-    setupScrollableEditable(criteriaRef.current, 137.4);
-    setupScrollableEditable(programHeadRef.current, 53.4);
-    setupScrollableEditable(educationProgramRef.current, 53.4);
+    setupScrollableEditable(titleRef.current, 53);
+    setupScrollableEditable(descriptionRef.current, 116);
+    setupScrollableEditable(customerOrgRef.current, 53);
+    setupScrollableEditable(customerNameRef.current, 53);
+    setupScrollableEditable(expectedResultRef.current, 95);
+    setupScrollableEditable(criteriaRef.current, 137);
+    setupScrollableEditable(programHeadRef.current, 53);
+    setupScrollableEditable(educationProgramRef.current, 53);
   }, []);
 
-  const handleContentChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    // Убираем класс empty если есть текст
-    const element = document.querySelector(`[data-field="${field}"]`);
-    if (element && value.trim() !== '') {
-      element.classList.remove('empty');
-    } else if (element && value.trim() === '') {
-      element.classList.add('empty');
+  const handleBeforeInput = (e: React.FormEvent<HTMLDivElement>, field: string) => {
+    const target = e.currentTarget;
+    const maxLength = fieldLimits[field];
+    if (!maxLength) return;
+    
+    const currentLength = target.innerText.length;
+    const inputEvent = e.nativeEvent as InputEvent;
+    const insertedText = inputEvent.data || '';
+    
+    if (currentLength + insertedText.length > maxLength) {
+      e.preventDefault();
+      setErrors(prev => ({ ...prev, [field]: `Максимум ${maxLength} символов` }));
+    } else if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
     }
   };
 
-  const handleSemesterChange = (semester: string) => {
-    setFormData(prev => ({ ...prev, semester }));
+  const handleContentChange = (field: string, element: HTMLDivElement | null) => {
+    if (!element) return;
+    const value = element.innerText;
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
   };
 
+  const handleSemesterChange = (newSemester: string) => {
+    setFormData(prev => ({ ...prev, semester: newSemester }));
+    if (errors.semester) {
+      setErrors(prev => ({ ...prev, semester: '' }));
+    }
+  };
+
+  const updateEmptyClass = (element: HTMLDivElement | null) => {
+    if (!element) return;
+    const isEmpty = element.innerText.trim() === '';
+    if (isEmpty) {
+      element.classList.add('empty');
+    } else {
+      element.classList.remove('empty');
+    }
+  };
+
+  // Дополнительный эффект для отслеживания empty
+  useEffect(() => {
+    const elements = [titleRef, descriptionRef, customerOrgRef, customerNameRef, expectedResultRef, criteriaRef, programHeadRef, educationProgramRef];
+    elements.forEach(ref => {
+      const el = ref.current;
+      if (el) {
+        el.addEventListener('input', () => updateEmptyClass(el));
+        updateEmptyClass(el);
+      }
+    });
+  }, []);
+
   const handleSave = () => {
+    const { isValid, errors: validationErrors } = validateForm(formData);
+    
+    if (!isValid) {
+      setErrors(validationErrors);
+      const firstErrorField = Object.keys(validationErrors)[0];
+      const errorElement = document.querySelector(`[data-field="${firstErrorField}"]`);
+      if (errorElement) {
+        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
+    
+    setErrors({});
     console.log('Создан новый кейс:', formData);
     navigate('/cases');
   };
 
   const handleGenerate = () => {
     console.log('Генерация кейса с помощью AI');
-    // TODO: добавить логику генерации
   };
 
   const breadcrumbItems = [
@@ -123,149 +190,144 @@ const CaseCreatePage = () => {
 
       <div className="create-form">
         {/* Название кейса */}
-        <div className="form-field">
+        <div className="form-field" data-field="title">
           <label className="form-label">Название кейса</label>
           <div
             ref={titleRef}
             className="editable-box empty"
             contentEditable
             suppressContentEditableWarning
-            onInput={(e) => handleContentChange('title', e.currentTarget.innerText)}
+            onBeforeInput={(e) => handleBeforeInput(e, 'title')}
+            onInput={() => handleContentChange('title', titleRef.current)}
             data-placeholder="Введите название кейса"
-            data-field="title"
-            style={{ minWidth: '100%', width: '100%' }}
-          >
-          </div>
+          />
+          {errors.title && <div className="error-message">{errors.title}</div>}
         </div>
 
         {/* Описание кейса */}
-        <div className="form-field">
+        <div className="form-field" data-field="description">
           <label className="form-label">Описание кейса</label>
           <div
             ref={descriptionRef}
             className="editable-box empty"
             contentEditable
             suppressContentEditableWarning
-            onInput={(e) => handleContentChange('description', e.currentTarget.innerText)}
+            onBeforeInput={(e) => handleBeforeInput(e, 'description')}
+            onInput={() => handleContentChange('description', descriptionRef.current)}
             data-placeholder="Введите описание кейса"
-            data-field="description"
-            style={{ minWidth: '100%', width: '100%' }}
-          >
-          </div>
+          />
+          {errors.description && <div className="error-message">{errors.description}</div>}
         </div>
 
         {/* Организация заказчика */}
-        <div className="form-field">
+        <div className="form-field" data-field="customerOrg">
           <label className="form-label">Организация заказчика</label>
           <div
             ref={customerOrgRef}
             className="editable-box empty"
             contentEditable
             suppressContentEditableWarning
-            onInput={(e) => handleContentChange('customerOrg', e.currentTarget.innerText)}
+            onBeforeInput={(e) => handleBeforeInput(e, 'customerOrg')}
+            onInput={() => handleContentChange('customerOrg', customerOrgRef.current)}
             data-placeholder="Введите организацию заказчика"
-            data-field="customerOrg"
-            style={{ minWidth: '100%', width: '100%' }}
-          >
-          </div>
+          />
+          {errors.customerOrg && <div className="error-message">{errors.customerOrg}</div>}
         </div>
 
         {/* ФИО заказчика */}
-        <div className="form-field">
+        <div className="form-field" data-field="customerName">
           <label className="form-label">ФИО заказчика</label>
           <div
             ref={customerNameRef}
             className="editable-box empty"
             contentEditable
             suppressContentEditableWarning
-            onInput={(e) => handleContentChange('customerName', e.currentTarget.innerText)}
+            onBeforeInput={(e) => handleBeforeInput(e, 'customerName')}
+            onInput={() => handleContentChange('customerName', customerNameRef.current)}
             data-placeholder="Введите ФИО заказчика"
-            data-field="customerName"
-            style={{ minWidth: '100%', width: '100%' }}
-          >
-          </div>
+          />
+          {errors.customerName && <div className="error-message">{errors.customerName}</div>}
         </div>
 
         {/* Предполагаемый результат */}
-        <div className="form-field">
+        <div className="form-field" data-field="expectedResult">
           <label className="form-label">Предполагаемый результат</label>
           <div
             ref={expectedResultRef}
             className="editable-box empty"
             contentEditable
             suppressContentEditableWarning
-            onInput={(e) => handleContentChange('expectedResult', e.currentTarget.innerText)}
+            onBeforeInput={(e) => handleBeforeInput(e, 'expectedResult')}
+            onInput={() => handleContentChange('expectedResult', expectedResultRef.current)}
             data-placeholder="Введите предполагаемый результат"
-            data-field="expectedResult"
-            style={{ minWidth: '100%', width: '100%' }}
-          >
-          </div>
+          />
+          {errors.expectedResult && <div className="error-message">{errors.expectedResult}</div>}
         </div>
 
         {/* Критерии оценки */}
-        <div className="form-field">
+        <div className="form-field" data-field="criteria">
           <label className="form-label">Критерии оценки</label>
           <div
             ref={criteriaRef}
             className="editable-box criteria-box empty"
             contentEditable
             suppressContentEditableWarning
-            onInput={(e) => handleContentChange('criteria', e.currentTarget.innerText)}
+            onBeforeInput={(e) => handleBeforeInput(e, 'criteria')}
+            onInput={() => handleContentChange('criteria', criteriaRef.current)}
             data-placeholder="Введите критерии оценки"
-            data-field="criteria"
-            style={{ minWidth: '100%', width: '100%' }}
-          >
-          </div>
+          />
+          {errors.criteria && <div className="error-message">{errors.criteria}</div>}
         </div>
 
         {/* Главный руководитель */}
-        <div className="form-field">
+        <div className="form-field" data-field="programHead">
           <label className="form-label">Главный руководитель образовательной программы</label>
           <div
             ref={programHeadRef}
             className="editable-box empty"
             contentEditable
             suppressContentEditableWarning
-            onInput={(e) => handleContentChange('programHead', e.currentTarget.innerText)}
+            onBeforeInput={(e) => handleBeforeInput(e, 'programHead')}
+            onInput={() => handleContentChange('programHead', programHeadRef.current)}
             data-placeholder="Введите ФИО руководителя"
-            data-field="programHead"
-            style={{ minWidth: '100%', width: '100%' }}
-          >
-          </div>
+          />
+          {errors.programHead && <div className="error-message">{errors.programHead}</div>}
         </div>
 
         {/* Образовательная программа */}
-        <div className="form-field">
+        <div className="form-field" data-field="educationProgram">
           <label className="form-label">Образовательная программа</label>
           <div
             ref={educationProgramRef}
             className="editable-box empty"
             contentEditable
             suppressContentEditableWarning
-            onInput={(e) => handleContentChange('educationProgram', e.currentTarget.innerText)}
+            onBeforeInput={(e) => handleBeforeInput(e, 'educationProgram')}
+            onInput={() => handleContentChange('educationProgram', educationProgramRef.current)}
             data-placeholder="Введите образовательную программу"
-            data-field="educationProgram"
-            style={{ minWidth: '100%', width: '100%' }}
-          >
-          </div>
+          />
+          {errors.educationProgram && <div className="error-message">{errors.educationProgram}</div>}
         </div>
 
         {/* Семестр */}
-        <div className="form-field form-field-row">
+        <div className="form-field form-field-row" data-field="semester">
           <label className="form-label">Семестр</label>
-          <div className="semester-toggle">
-            <button
-              className={`semester-option ${formData.semester === 'Осенний' ? 'active' : ''}`}
-              onClick={() => handleSemesterChange('Осенний')}
-            >
-              Осенний
-            </button>
-            <button
-              className={`semester-option ${formData.semester === 'Весенний' ? 'active' : ''}`}
-              onClick={() => handleSemesterChange('Весенний')}
-            >
-              Весенний
-            </button>
+          <div className="semester-wrapper">
+            <div className="semester-toggle">
+              <button
+                className={`semester-option ${formData.semester === 'Осенний' ? 'active' : ''}`}
+                onClick={() => handleSemesterChange('Осенний')}
+              >
+                Осенний
+              </button>
+              <button
+                className={`semester-option ${formData.semester === 'Весенний' ? 'active' : ''}`}
+                onClick={() => handleSemesterChange('Весенний')}
+              >
+                Весенний
+              </button>
+            </div>
+            {errors.semester && <div className="error-message semester-error">{errors.semester}</div>}
           </div>
         </div>
       </div>
