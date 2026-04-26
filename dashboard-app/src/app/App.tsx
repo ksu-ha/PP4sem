@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import DashboardPage from '../pages/Dashboard/DashboardPage';
 import CasesPage from '../pages/Cases/CasesPage';
 import SentCasesPage from '../pages/Cases/SentCasesPage';
+import CaseViewPage from '../pages/Cases/CaseViewPage';
 
 function App() {
   return (
@@ -9,7 +10,8 @@ function App() {
       <Routes>
         <Route path="/" element={<DashboardPage />} />
         <Route path="/cases" element={<CasesPage />} />
-        <Route path="/cases/sent" element={<SentCasesPage />} />
+        <Route path="/sent-cases" element={<SentCasesPage />} />
+        <Route path="/cases/:id" element={<CaseViewPage />} />
       </Routes>
     </BrowserRouter>
   );
